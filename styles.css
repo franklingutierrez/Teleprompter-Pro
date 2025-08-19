@@ -1,0 +1,85 @@
+:root{
+    --bg: #0b0f14;
+    --panel: #121821;
+    --text: #e8edf3;
+    --muted:#9fb0c3;
+    --accent:#4cc9f0;
+    --accent-2:#00d4a6;
+    --danger:#ff6b6b;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius: 18px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial; display:flex; flex-direction:column; gap:16px }
+
+  header{ padding:12px 20px; position:sticky; top:0; z-index:12; background:linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.85)); backdrop-filter: blur(6px); border-bottom:1px solid rgba(255,255,255,.06); display:flex; justify-content:space-between; align-items:center }
+  header h1{margin:0; font-size:18px; letter-spacing:.4px}
+  header .actions{display:flex; gap:10px; align-items:center}
+  header .sub{font-size:12px; color:var(--muted)}
+
+  .container{display:grid; grid-template-columns: 1fr 1.2fr; gap:18px; padding:0 16px 24px}
+  @media (max-width: 1080px){ .container{grid-template-columns: 1fr;} }
+
+  .card{ background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .card h2{margin:0 0 8px 0; font-size:16px; color:var(--muted)}
+  .card .head{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.06)}
+  .card .body{padding:16px}
+
+  /* Toolbar */
+  .toolbar{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px }
+  .toolbar .group{ display:flex; gap:6px; background:#0e141b; border:1px solid rgba(255,255,255,.08); padding:6px; border-radius:12px }
+  .toolbar button, .toolbar select, .toolbar input[type="color"]{ appearance:none; border:none; border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:600; letter-spacing:.2px; background:#122030; color:#e8f7ff; border:1px solid rgba(255,255,255,.08) }
+  .toolbar button:hover{ transform:translateY(-1px) }
+  .toolbar .ghost{ background:transparent }
+  .toolbar label{ font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px }
+
+  /* Rich editor */
+  #editor{ width:100%; min-height:220px; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:#0e141b; color:var(--text); line-height:1.5; font-size:15px; outline:none; overflow:auto }
+  #editor:empty:before{ content:attr(data-placeholder); color:var(--muted) }
+
+  /* Prompter stage */
+  .stage-wrap{position:relative; overflow:hidden; border-radius:var(--radius)}
+  .stage{ background:#000; min-height:60vh; border-radius:var(--radius); border:1px solid rgba(255,255,255,.06); position:relative; display:flex; align-items:flex-start; justify-content:center; overflow:hidden }
+  .stage.mirrored{ transform: scaleX(-1) }
+  .stage .scroll{ position:absolute; width:100%; padding: var(--pad, 60px) 8vw }
+  .stage .line{ width:100%; text-align:center; font-weight:600; letter-spacing:.2px }
+  .ruler{ position:absolute; top:50%; left:0; width:100%; height:0; border-top:2px dashed rgba(255,255,255,.35); pointer-events:none }
+  .legend{ position:absolute; bottom:12px; right:14px; font-size:12px; color:#ddd; opacity:.7 }
+
+  /* Themes for stage text */
+  .theme-light{background:#fff; color:#111}
+  .theme-dark{background:#000; color:#f5f5f5}
+  .theme-contrast{background:#000; color:#00ff9c}
+
+  .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono"; background:#0b0f14; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.15)}
+
+  .controls{display:grid; grid-template-columns: repeat(6, 1fr); gap:12px}
+  @media (max-width: 920px){ .controls{grid-template-columns: repeat(2, 1fr);} }
+  .ctrl{background:#0e141b; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:6px}
+  .ctrl label{font-size:12px; color:var(--muted)}
+  .ctrl input[type="range"], .ctrl input[type="number"], .ctrl select{width:100%}
+
+  .buttons{display:flex; flex-wrap:wrap; gap:10px}
+  button{ appearance:none; border:none; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600; letter-spacing:.2px; background:#122030; color:#e8f7ff; border:1px solid rgba(255,255,255,.08); transition:transform .06s ease }
+  button:hover{ transform:translateY(-1px) }
+  button.primary{background:linear-gradient(180deg, var(--accent), #3aa9d0); color:#00131a}
+  button.ghost{background:transparent}
+  button.danger{background:linear-gradient(180deg, #ff9a9a, var(--danger)); color:#2a0000}
+  button.success{background:linear-gradient(180deg, #6cf2cf, var(--accent-2)); color:#002217}
+
+  .footer{padding:0 16px 22px; color:var(--muted); font-size:12px}
+  .footer a{color:var(--accent)}
+
+  /* Modal */
+  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(6px); align-items:center; justify-content:center; z-index:9999 }
+  .modal .card{ width:calc(100% - 48px); max-width:480px; padding:20px; text-align:left; border-radius:12px; background:linear-gradient(180deg,#0e141b,#0b0f14); color:var(--text); box-shadow:var(--shadow) }
+  .modal .card h3{ margin-top:0 }
+  .modal .links{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px }
+  .modal .links button{ padding:8px 10px; border-radius:8px; border:none; cursor:pointer; background:#122030; color:var(--text) }
+
+  @media (max-width:600px){
+    header{ padding:8px 12px }
+    .card .head{ padding:10px }
+  }
