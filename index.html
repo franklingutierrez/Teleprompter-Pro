@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teleprompter Pro – Frank</title>
+  <link rel="icon" href="libro-electronico.png" type="image/x-icon">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Teleprompter Pro</h1>
+      <div class="sub">Desarrollado por Ing. Franklin Gutierrez Arizaca</div>
+    </div>
+    <div class="actions">
+      <button id="aboutBtn" title="Acerca de"><i class="fas fa-circle-info"></i></button>
+      <button id="fullscreenBtn" title="Pantalla completa"><i class="fas fa-expand"></i></button>
+      <button id="themeBtn" title="Cambiar tema"><i class="fas fa-circle-half-stroke"></i></button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Left: Editor & Controls -->
+    <section class="card">
+      <div class="head">
+        <h2>Editor de guion</h2>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <span class="kbd">Ctrl+B</span> <span class="kbd">Ctrl+I</span> <span class="kbd">Ctrl+U</span>
+          <span class="kbd">F11</span> pantalla completa (luego <span class="kbd">F</span>)
+        </div>
+      </div>
+      <div class="body">
+        <!-- Toolbar -->
+        <div class="toolbar" id="toolbar">
+          <div class="group">
+            <button type="button" data-cmd="bold" title="Negrita"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Cursiva"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Subrayado"><u>U</u></button>
+            <button type="button" id="clearFormat" class="ghost" title="Limpiar formato">Limpiar</button>
+          </div>
+          <div class="group">
+            <label title="Color de texto">Color <input type="color" id="foreColor" /></label>
+            <label title="Color de fondo">Resaltado <input type="color" id="hiliteColor" value="#ffff00"/></label>
+          </div>
+          <div class="group">
+            <select id="templates" title="Plantillas">
+              <option value="">Plantillas</option>
+              <option value="<h1 style='margin:.2em 0'>Título principal</h1>">Título</option>
+              <option value="<h2 style='margin:.2em 0'>Subtítulo</h2>">Subtítulo</option>
+              <option value="<p style='margin:.4em 0'>Párrafo de ejemplo…</p>">Párrafo</option>
+            </select>
+            <button type="button" id="wrapCue" title="Insertar marca de pausa">⏱ Pausa</button>
+          </div>
+          <div class="group">
+            <input type="file" id="fileInput" accept=".txt,.html" style="display:none"/>
+            <button type="button" id="importBtn" title="Importar">Importar</button>
+            <button type="button" id="exportBtn" title="Exportar">Exportar</button>
+          </div>
+        </div>
+
+        <!-- Contenteditable editor -->
+        <div id="editor" contenteditable="true" data-placeholder="Escribe aquí… puedes usar negrita, cursiva, subrayado, color de texto y resaltado."></div>
+
+        <!-- Reader controls -->
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,.08); margin:16px 0">
+        <div class="controls">
+          <div class="ctrl">
+            <label for="speed">Velocidad (px/seg)</label>
+            <div class="row"><input id="speed" type="range" min="10" max="600" step="5" value="120"><span id="speedVal">120</span></div>
+          </div>
+          <div class="ctrl">
+            <label for="fontSize">Tamaño de fuente</label>
+            <div class="row"><input id="fontSize" type="range" min="14" max="96" value="42"><span id="fontSizeVal">42 px</span></div>
+          </div>
+          <div class="ctrl">
+            <label for="lineHeight">Interlineado</label>
+            <div class="row"><input id="lineHeight" type="range" min="1" max="2" step="0.05" value="1.4"><span id="lineHeightVal">1.4</span></div>
+          </div>
+          <div class="ctrl">
+            <label for="padding">Márgenes (px)</label>
+            <div class="row"><input id="padding" type="range" min="20" max="160" step="2" value="60"><span id="paddingVal">60</span></div>
+          </div>
+          <div class="ctrl">
+            <label for="themeSelect">Tema</label>
+            <select id="themeSelect">
+              <option value="dark" selected>Oscuro</option>
+              <option value="light">Claro</option>
+              <option value="contrast">Alto contraste</option>
+            </select>
+          </div>
+          <div class="ctrl">
+            <label for="countdown">Cuenta regresiva (s)</label>
+            <div class="row"><input id="countdown" type="number" min="0" max="10" value="3"></div>
+          </div>
+        </div>
+
+        <div class="buttons" style="margin-top:14px">
+          <button id="toggleStart" class="success">▶ Iniciar</button>
+          <button id="pauseBtn" class="ghost">⏸ Pausar</button>
+          <button id="resetBtn" class="ghost">⟲ Reiniciar</button>
+          <button id="mirrorBtn" class="ghost">⇋ Espejo</button>
+          <button id="uppercaseBtn" class="ghost">AA Mayúsculas</button>
+          <button id="fullscreenBtn2" class="ghost">⛶ Pantalla completa</button>
+        </div>
+        <p style="color:var(--muted); font-size:12px; margin-top:8px">Atajos: <span class="kbd">Espacio</span> iniciar/pausa • <span class="kbd">↑/↓</span> velocidad • <span class="kbd">+/−</span> tamaño • <span class="kbd">M</span> espejo • <span class="kbd">F</span> pantalla completa • <span class="kbd">R</span> reiniciar • <span class="kbd">Ctrl+B/I/U</span> formato • <span class="kbd">Esc</span> salir.</p>
+      </div>
+    </section>
+
+    <!-- Right: Prompter Stage -->
+    <section class="card stage-wrap">
+      <div class="head">
+        <h2>Prompter</h2>
+        <div class="kbd">Guía central</div>
+      </div>
+      <div class="body" style="padding:0">
+        <div id="stage" class="stage theme-dark">
+          <div class="ruler"></div>
+          <div id="scroll" class="scroll">
+            <div id="content" class="line" style="font-size:42px; line-height:1.4"></div>
+          </div>
+          <div class="legend" id="legend">Listo</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">
+    <p><strong>Notas:</strong> El texto y los ajustes se guardan en tu navegador (localStorage). Modo espejo para vidrio teleprompter. 100% offline.</p>
+  </div>
+
+  <!-- Modal Acerca de -->
+  <div class="modal" id="aboutModal" aria-hidden="true">
+    <div class="card" role="dialog" aria-labelledby="aboutTitle">
+      <h3 id="aboutTitle">Acerca de</h3>
+      <p><i class="fas fa-user"></i> <strong>Desarrollado por:</strong> Ing. Franklin Gutierrez Arizaca</p>
+      <p><i class="fas fa-globe"></i> <a href="https://www.guiratec.com" target="_blank" rel="noopener">www.guiratec.com</a></p>
+      <p><i class="fas fa-phone"></i> +51 973 158 561</p>
+      <p><i class="fas fa-envelope"></i> fgutierrezarizaca@gmail.com</p>
+      <p><i class="far fa-copyright"></i> © 2025 Copyright</p>
+      <div class="links">
+        <button id="waShare" title="Compartir por WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+        <button id="mailShare" title="Compartir por correo"><i class="fas fa-envelope"></i> Correo</button>
+        <button id="copyShare" title="Copiar enlace"><i class="fas fa-link"></i> Copiar link</button>
+        <button id="closeAbout" title="Cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Referencias DOM ===
+const el = {
+    editor: document.getElementById('editor'),
+    toolbar: document.getElementById('toolbar'),
+    clearFormat: document.getElementById('clearFormat'),
+    foreColor: document.getElementById('foreColor'),
+    hiliteColor: document.getElementById('hiliteColor'),
+    templates: document.getElementById('templates'),
+    wrapCue: document.getElementById('wrapCue'),
+    importBtn: document.getElementById('importBtn'),
+    exportBtn: document.getElementById('exportBtn'),
+    fileInput: document.getElementById('fileInput'),
+
+    speed: document.getElementById('speed'), speedVal: document.getElementById('speedVal'),
+    fontSize: document.getElementById('fontSize'), fontSizeVal: document.getElementById('fontSizeVal'),
+    lineHeight: document.getElementById('lineHeight'), lineHeightVal: document.getElementById('lineHeightVal'),
+    padding: document.getElementById('padding'), paddingVal: document.getElementById('paddingVal'),
+    theme: document.getElementById('themeSelect'),
+    countdown: document.getElementById('countdown'),
+
+    start: document.getElementById('toggleStart'),
+    pause: document.getElementById('pauseBtn'),
+    reset: document.getElementById('resetBtn'),
+    mirror: document.getElementById('mirrorBtn'),
+    uppercase: document.getElementById('uppercaseBtn'),
+    fullscreen: document.getElementById('fullscreenBtn2'),
+
+    aboutBtn: document.getElementById('aboutBtn'),
+    fullscreenBtn: document.getElementById('fullscreenBtn'),
+    themeBtn: document.getElementById('themeBtn'),
+
+    stage: document.getElementById('stage'),
+    scroll: document.getElementById('scroll'),
+    content: document.getElementById('content'),
+    legend: document.getElementById('legend'),
+
+    aboutModal: document.getElementById('aboutModal'),
+    waShare: document.getElementById('waShare'),
+    mailShare: document.getElementById('mailShare'),
+    copyShare: document.getElementById('copyShare'),
+    closeAbout: document.getElementById('closeAbout'),
+  };
+
+  // === Estado ===
+  let running = false;
+  let mirrored = false;
+  let upper = false;
+  let theme = 'dark';
+  let speed = 120; // px/s
+  let fontSize = 42; // px
+  let lineHeight = 1.4;
+  let padding = 60;
+  let lastTs = 0;
+  let raf = null;
+
+  // === Persistencia ===
+  const LS_KEY = 'teleprompter.pro.v1';
+  function saveState(){
+    try{
+      const data = {
+        html: el.editor.innerHTML,
+        speed: +el.speed.value,
+        fontSize: +el.fontSize.value,
+        lineHeight: +el.lineHeight.value,
+        padding: +el.padding.value,
+        theme: el.theme.value,
+        mirrored,
+        upper,
+        countdown: +el.countdown.value,
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    }catch(e){ console.warn('No se pudo guardar', e); }
+  }
+  function loadState(){
+    try{
+      const data = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+      if(data.html) el.editor.innerHTML = data.html; else seedSample();
+      if(data.speed) el.speed.value = data.speed;
+      if(data.fontSize) el.fontSize.value = data.fontSize;
+      if(data.lineHeight) el.lineHeight.value = data.lineHeight;
+      if(data.padding) el.padding.value = data.padding;
+      if(data.theme) el.theme.value = data.theme;
+      if(typeof data.mirrored === 'boolean') mirrored = data.mirrored;
+      if(typeof data.upper === 'boolean') upper = data.upper;
+      if(typeof data.countdown === 'number') el.countdown.value = data.countdown;
+      applyControls();
+      applyMirror();
+      applyUppercase();
+    }catch(e){ seedSample(); }
+  }
+
+  function seedSample(){
+    el.editor.innerHTML = `
+      <h1 style="margin:.2em 0">Ejemplo de teleprompter</h1>
+      <p style="margin:.4em 0">Este es un <b>ejemplo</b>. Puedes usar <i>cursivas</i>, <u>subrayado</u>, <span style="color:#ffd166">colores</span> y <span style="background:#ffef7a">resaltados</span>.</p>
+      <p style="margin:.4em 0">Pulsa <span style="background:#0e141b;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15)">Espacio</span> para iniciar o pausar.</p>
+    `;
+  }
+
+  // === Utilidades ===
+  function setLegend(msg){ el.legend.textContent = msg; }
+
+  function applyControls(){
+    speed = +el.speed.value; el.speedVal.textContent = speed;
+    fontSize = +el.fontSize.value; el.fontSizeVal.textContent = fontSize + ' px';
+    lineHeight = +el.lineHeight.value; el.lineHeightVal.textContent = lineHeight;
+    padding = +el.padding.value; el.paddingVal.textContent = padding;
+    el.content.style.fontSize = fontSize + 'px';
+    el.content.style.lineHeight = lineHeight;
+    el.scroll.style.setProperty('--pad', padding + 'px');
+    setTheme(el.theme.value);
+    saveState();
+  }
+
+  function setTheme(t){ theme = t; el.stage.classList.remove('theme-dark','theme-light','theme-contrast'); el.stage.classList.add('theme-'+t); }
+  function applyMirror(){ el.stage.classList.toggle('mirrored', mirrored); saveState(); }
+  function applyUppercase(){ el.content.style.textTransform = upper ? 'uppercase' : 'none'; saveState(); }
+
+  function loadToPrompter(){
+    const html = (el.editor.innerHTML || '').trim();
+    el.content.innerHTML = html || '<p>Escribe tu guion y presiona Iniciar.</p>';
+    el.scroll.style.transform = 'translateY(0px)';
+    cancelAnim();
+    setLegend('Listo');
+    saveState();
+  }
+
+  function countdownThen(startFn){
+    const secs = Math.max(0, Math.min(10, +el.countdown.value||0));
+    if(!secs){ startFn(); return; }
+    let n = secs; setLegend('Inicio en '+n+'…');
+    const id = setInterval(()=>{
+      n--; setLegend(n>0?('Inicio en '+n+'…'):'¡Vamos!');
+      if(n<=0){ clearInterval(id); startFn(); }
+    }, 1000);
+  }
+
+  function start(){
+    if(running) return;
+    running = true; el.start.textContent = '⏸ Pausar'; el.start.classList.remove('success'); el.start.classList.add('danger');
+    lastTs = performance.now();
+    raf = requestAnimationFrame(tick);
+    setLegend('Desplazando…');
+  }
+  function pause(){
+    running = false; cancelAnim();
+    el.start.textContent = '▶ Reanudar'; el.start.classList.add('success'); el.start.classList.remove('danger');
+    setLegend('Pausado');
+  }
+  function toggleStart(){ running? pause() : countdownThen(start); }
+
+  function reset(){
+    cancelAnim(); running=false; el.scroll.style.transform = 'translateY(0px)';
+    el.start.textContent = '▶ Iniciar'; el.start.classList.add('success'); el.start.classList.remove('danger');
+    setLegend('Listo');
+  }
+
+  function cancelAnim(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+
+  function tick(ts){
+    const dt = (ts - lastTs)/1000; lastTs = ts;
+    const cur = getCurrentY();
+    const next = cur - speed * dt; // scroll hacia arriba
+    const maxUp = -(el.scroll.scrollHeight - el.stage.clientHeight + padding);
+    const done = next <= maxUp;
+    el.scroll.style.transform = `translateY(${done?maxUp:next}px)`;
+    if(!done && running){ raf = requestAnimationFrame(tick);} else { running=false; setLegend('Fin'); el.start.textContent='▶ Reiniciar'; el.start.classList.add('success'); }
+  }
+
+  function getCurrentY(){
+    const m = /translateY\\((-?\\d+(?:\\.\\d+)?)px\\)/.exec(el.scroll.style.transform||'');
+    return m? parseFloat(m[1]) : 0;
+  }
+
+  // === Pantalla completa ===
+  async function goFullscreen(){ 
+    try{
+      if(!document.fullscreenElement){ await el.stage.requestFullscreen(); } else { await document.exitFullscreen(); }
+    }catch(e){ console.warn('Fullscreen error', e); }
+  }
+
+  // === Editor enriquecido ===
+  function exec(cmd, arg=null){ document.execCommand(cmd, false, arg); el.editor.focus(); saveState(); }
+
+  // barra básica
+  el.toolbar.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-cmd]'); if(!btn) return;
+    exec(btn.dataset.cmd);
+  });
+  el.clearFormat.addEventListener('click', ()=> exec('removeFormat'));
+  el.foreColor.addEventListener('input', (e)=> exec('foreColor', e.target.value));
+  el.hiliteColor.addEventListener('input', (e)=> exec('hiliteColor', e.target.value));
+  el.templates.addEventListener('change', (e)=>{ if(!e.target.value) return; exec('insertHTML', e.target.value); e.target.value=''; });
+  el.wrapCue.addEventListener('click', ()=> exec('insertHTML', '<span style=\"opacity:.7\">⏸ Pausa</span>'));
+
+  // Guardado automático del editor
+  el.editor.addEventListener('input', saveState);
+
+  // Importar / Exportar
+  el.importBtn.addEventListener('click', ()=> el.fileInput.click());
+  el.fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const text = reader.result;
+      if(/\\.html?$/i.test(file.name)){
+        el.editor.innerHTML = text; // cargar como HTML
+      } else {
+        // convertir texto plano a párrafos simples
+        const blocks = String(text).split(/\\n{2,}/).map(p=>`<p>${p.replace(/\\n/g,'<br>')}</p>`).join('');
+        el.editor.innerHTML = blocks;
+      }
+      saveState();
+    };
+    reader.readAsText(file, 'utf-8');
+    e.target.value='';
+  });
+
+  el.exportBtn.addEventListener('click', ()=>{
+    const blob = new Blob([el.editor.innerHTML||''], {type:'text/html;charset=utf-8'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'guion-teleprompter.html'; a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  // === Eventos UI (lector) ===
+  ['speed','fontSize','lineHeight','padding'].forEach(id=> el[id].addEventListener('input', applyControls));
+  el.theme.addEventListener('change', ()=>{ setTheme(el.theme.value); saveState(); });
+
+  el.start.addEventListener('click', ()=>{ loadToPrompter(); if(!running){ countdownThen(start); } else { pause(); } });
+  el.pause.addEventListener('click', pause);
+  el.reset.addEventListener('click', reset);
+  el.mirror.addEventListener('click', ()=>{ mirrored = !mirrored; applyMirror(); });
+  el.uppercase.addEventListener('click', ()=>{ upper = !upper; applyUppercase(); });
+  el.fullscreen.addEventListener('click', goFullscreen);
+
+  // === Teclado ===
+  window.addEventListener('keydown', (e)=>{
+    // Atajos editor
+    if(e.ctrlKey && e.key.toLowerCase()==='b'){ e.preventDefault(); exec('bold'); }
+    if(e.ctrlKey && e.key.toLowerCase()==='i'){ e.preventDefault(); exec('italic'); }
+    if(e.ctrlKey && e.key.toLowerCase()==='u'){ e.preventDefault(); exec('underline'); }
+
+    // Atajos del lector (si no estás escribiendo en el editor)
+    const withinEditor = document.activeElement === el.editor;
+    if(withinEditor) return;
+    if(e.code === 'Space'){ e.preventDefault(); toggleStart(); }
+    else if(e.code === 'ArrowUp'){ e.preventDefault(); el.speed.value = Math.min(600, (+el.speed.value + 10)); applyControls(); }
+    else if(e.code === 'ArrowDown'){ e.preventDefault(); el.speed.value = Math.max(10, (+el.speed.value - 10)); applyControls(); }
+    else if(e.key === '+'){ el.fontSize.value = Math.min(96, (+el.fontSize.value + 2)); applyControls(); }
+    else if(e.key === '-') { el.fontSize.value = Math.max(14, (+el.fontSize.value - 2)); applyControls(); }
+    else if(e.key.toLowerCase() === 'm'){ mirrored = !mirrored; applyMirror(); }
+    else if(e.key.toLowerCase() === 'f'){ goFullscreen(); }
+    else if(e.key.toLowerCase() === 'r'){ reset(); }
+    else if(e.key === 'Escape' && document.fullscreenElement){ document.exitFullscreen(); }
+  });
+
+  // === About modal & sharing ===
+  el.aboutBtn.addEventListener('click', ()=> { el.aboutModal.style.display = 'flex'; el.aboutModal.setAttribute('aria-hidden','false'); });
+  el.closeAbout.addEventListener('click', ()=> { el.aboutModal.style.display = 'none'; el.aboutModal.setAttribute('aria-hidden','true'); });
+  window.addEventListener('click', (e)=>{ if(e.target === el.aboutModal) { el.aboutModal.style.display = 'none'; el.aboutModal.setAttribute('aria-hidden','true'); } });
+
+  el.waShare.addEventListener('click', ()=> {
+    const url = 'https://www.guiratec.com';
+    window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+  });
+  el.mailShare.addEventListener('click', ()=> { window.location.href = `mailto:?subject=Teleprompter%20Pro&body=Visita%20https://www.guiratec.com`; });
+  el.copyShare.addEventListener('click', async ()=> {
+    try{ await navigator.clipboard.writeText('https://www.guiratec.com'); alert('Enlace copiado al portapapeles'); }
+    catch(e){ alert('No se pudo copiar el enlace'); }
+  });
+
+  el.fullscreenBtn.addEventListener('click', async ()=> { 
+    try{ if(!document.fullscreenElement){ await document.documentElement.requestFullscreen(); } else { await document.exitFullscreen(); } }
+    catch(e){ console.warn(e); }
+  });
+
+  el.themeBtn.addEventListener('click', ()=> {
+    const order = ['dark','light','contrast'];
+    const cur = el.theme.value || 'dark';
+    const idx = (order.indexOf(cur) + 1) % order.length;
+    el.theme.value = order[idx]; applyControls();
+  });
+
+  // === Inicializar ===
+  loadState();
+  loadToPrompter();
+  </script>
+</body>
+</html>
